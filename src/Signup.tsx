@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   User,
   Mail,
@@ -8,22 +8,51 @@ import {
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
+import { useRegisterMutation } from "./redux/features/auth/authApi";
+ // Update path if needed
+
+interface FormData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
 const Signup = () => {
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
+  const [register, { isLoading, error }] = useRegisterMutation();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Registering User:", formData);
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      await register({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      }).unwrap(); // unwrap handles errors nicely
+      console.log("User registered successfully");
+      navigate("/login"); // Redirect to login after success
+    } catch (err:any) {
+      console.error("Registration failed:", err?.data?.message || err);
+      alert(err?.data?.message || "Registration failed");
+    }
   };
 
   return (
@@ -150,10 +179,20 @@ const Signup = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] transition-all tracking-wide mt-2"
+            className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-xl shadow-blue-200 hover:shadow-blue-300 active:scale-[0.98] transition-all tracking-wide mt-2 ${
+              isLoading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+            disabled={isLoading}
           >
-            CREATE FREE ACCOUNT <ArrowRight size={18} />
+            {isLoading ? "Creating..." : "CREATE FREE ACCOUNT"}{" "}
+            <ArrowRight size={18} />
           </button>
+
+          {error && (
+            <p className="text-red-500 text-sm text-center mt-2">
+              {(error as any)?.data?.message || "Something went wrong"}
+            </p>
+          )}
         </form>
 
         {/* Footer Link */}

@@ -148,7 +148,7 @@ const Dashboard = () => {
                 Live Delivery Queue
               </h3>
             </div>
-            {isSending && (
+            {isSending && ( 
               <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100 shadow-inner">
                 <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest">
