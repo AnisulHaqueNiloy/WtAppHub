@@ -6,6 +6,7 @@ import Dashboard from "./Dashboard/Dashboard";
 import DashboardLayout from "./Dashboard/DashboardLayout";
 import Analytics from "./Dashboard/Analytics";
 import History from "./Dashboard/History";
+import PrivateRoute from "./PrivateRoute";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -20,20 +21,25 @@ export const router = createBrowserRouter([
         element: <Signup />,
       },
       {
-        path: "dashboard",
-        element: <DashboardLayout />,
+        element: <PrivateRoute />, // auth guard
         children: [
           {
-            index: true,
-            element: <Dashboard />,
-          },
-          {
-            path: "analytics",
-            element: <Analytics />,
-          },
-          {
-            path: "history",
-            element: <History />,
+            path: "dashboard",
+            element: <DashboardLayout />,
+            children: [
+              {
+                index: true,
+                element: <Dashboard />,
+              },
+              {
+                path: "analytics",
+                element: <Analytics />,
+              },
+              {
+                path: "history",
+                element: <History />,
+              },
+            ],
           },
         ],
       },
