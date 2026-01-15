@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import   { useState, useEffect, useContext } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -9,10 +9,12 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { authContext } from "../AuthContext/AuthProvider";
 
 const DashboardLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { logout } = useContext(authContext);
 
   // Path change hole auto sidebar bondho hoye jabe (Mobile view-r jonno)
   useEffect(() => {
@@ -108,7 +110,7 @@ const DashboardLayout = () => {
             </p>
             <p className="text-sm font-bold text-blue-400">01631484734</p>
           </div>
-          <button className="flex items-center gap-4 px-4 py-3 w-full rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all text-slate-400 group">
+          <button onClick={logout} className="flex items-center gap-4 px-4 py-3 w-full rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all text-slate-400 group">
             <LogOut
               size={20}
               className="group-hover:translate-x-1 transition-transform"

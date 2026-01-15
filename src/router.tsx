@@ -7,10 +7,13 @@ import DashboardLayout from "./Dashboard/DashboardLayout";
 import Analytics from "./Dashboard/Analytics";
 import History from "./Dashboard/History";
 import PrivateRoute from "./PrivateRoute";
+import AuthProvider from "./AuthContext/AuthProvider";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <ParentLayout></ParentLayout>,
+    element: <AuthProvider>
+      <ParentLayout></ParentLayout>
+    </AuthProvider>,
     children: [
       {
         path: "login",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {  useState } from "react";
 import {
   UploadCloud,
   Send,
@@ -6,6 +6,7 @@ import {
   ListFilter,
   Activity,
 } from "lucide-react";
+
 
 interface Contact {
   number: string;
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const [message, setMessage] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isSending, setIsSending] = useState(false);
+ 
 
   // CSV parsing logic (Dummy)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
