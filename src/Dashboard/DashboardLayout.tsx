@@ -40,6 +40,11 @@ const DashboardLayout = () => {
       path: "/dashboard/analytics",
       icon: <BarChart3 size={20} />,
     },
+    {
+      name: "Setting",
+      path: "/dashboard/setting",
+      icon: <BarChart3 size={20} />,
+    },
   ];
 
   return (

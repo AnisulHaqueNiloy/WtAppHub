@@ -8,7 +8,8 @@ import {
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
-import { useRegisterMutation } from "./redux/features/auth/authApi";
+import { useRegisterMutation } from "./redux/features/auth/authAPi";
+
  // Update path if needed
 
 interface FormData {

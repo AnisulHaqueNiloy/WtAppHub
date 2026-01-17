@@ -8,7 +8,8 @@ import Analytics from "./Dashboard/Analytics";
 import History from "./Dashboard/History";
 import PrivateRoute from "./PrivateRoute";
 import AuthProvider from "./AuthContext/AuthProvider";
-export const router = createBrowserRouter([
+import Setting from "./Dashboard/Setting";
+ export const router = createBrowserRouter([
   {
     path: "/",
     element: <AuthProvider>
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
               {
                 path: "history",
                 element: <History />,
+              },
+              {
+                path: "setting",
+                element: <Setting></Setting> ,
               },
             ],
           },

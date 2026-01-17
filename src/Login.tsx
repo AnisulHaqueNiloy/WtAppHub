@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MessageSquare, Mail, Lock, ArrowRight } from "lucide-react";
-import { useLoginMutation } from "./redux/features/auth/authApi";
+import { useLoginMutation } from "./redux/features/auth/authAPi";
+
   // path adjust করো
 
 const Login = () => {
