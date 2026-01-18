@@ -19,7 +19,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const checkAuth = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/auth/me",
+        "https://wt-app-server.onrender.com/api/auth/me",
         { withCredentials: true }
       );
       setUser(res.data);
@@ -57,7 +57,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // ✅ Logout
   const logout = async () => {
     await axios.post(
-      "http://localhost:5000/api/auth/logout",
+      "https://wt-app-server.onrender.com/api/auth/logout",
       {},
       { withCredentials: true }
     );
