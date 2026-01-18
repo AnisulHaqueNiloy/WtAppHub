@@ -22,7 +22,7 @@ const Login = () => {
       // Optional: Save JWT in localStorage or Redux Persist
       localStorage.setItem("token", res.token);
 
-      navigate("/dashboard"); // Redirect to dashboard
+      window.location.href = "/dashboard"; // Redirect to dashboard
     } catch (err: any) {
       console.error("Login failed:", err?.data?.message || err);
       alert(err?.data?.message || "Login failed");
@@ -116,7 +116,7 @@ const Login = () => {
           <p className="text-slate-500 text-sm font-medium">
             New here?{" "}
             <Link
-              to={"/signup"}
+              to={"/"}
               className="text-blue-600 font-bold hover:underline underline-offset-4"
             >
               Create an account

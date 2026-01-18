@@ -21,7 +21,26 @@ const settingApi= baseApi.injectEndpoints({
       }),
        invalidatesTags: ['Message'],
     }),
+
+     getSessionStatus: builder.query<{ success: boolean; status: string; number: string }, void>({
+      query: () => ({
+        url: '/session/status', // backend router link
+        method: 'GET',
+      }),
+     
+     
+      providesTags: ['Session'],
+    }),
+
+
+    getAnalytics: builder.query({
+      query: () => ({
+        url: '/message/analytics',
+        method: 'GET',
+      }),
+      providesTags: ['Message'],  
+    }),
     })
 })
 
-export const {useTokenUpdateMutation, useSendBulkMutation} = settingApi
+export const {useTokenUpdateMutation, useSendBulkMutation, useGetSessionStatusQuery,useGetAnalyticsQuery} = settingApi

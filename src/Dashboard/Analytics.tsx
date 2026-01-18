@@ -1,51 +1,71 @@
- 
 import {
   TrendingUp,
   Users,
   CheckCircle,
   XCircle,
   ArrowUpRight,
+  Loader2,
 } from "lucide-react";
+import { useGetAnalyticsQuery } from "../redux/features/settings/settingApi";
+ 
 
 const Analytics = () => {
+  // RTK Query theke data nawa
+  const { data, isLoading, isError } = useGetAnalyticsQuery(undefined);
+  
+  // Backend theke data ashar por format kora
+  const apiStats = data?.data || {
+    totalMessages: 0,
+    successRate: "0%",
+    delivered: 0,
+    failed: 0,
+  };
+console.log("Analytics Data:", data);
   const stats = [
     {
       label: "Total Messages",
-      value: "12,840",
+      value: apiStats.totalMessages.toLocaleString(),
       icon: <Users size={20} />,
       color: "text-blue-600",
       bg: "bg-blue-50",
-      trend: "+12%",
+      trend: "+0%", // Trend logic pore backend theke add kora jabe
     },
     {
       label: "Success Rate",
-      value: "98.2%",
+      value: apiStats.successRate,
       icon: <TrendingUp size={20} />,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
-      trend: "+0.4%",
+      trend: "+0%",
     },
     {
       label: "Delivered",
-      value: "12,610",
+      value: apiStats.delivered.toLocaleString(),
       icon: <CheckCircle size={20} />,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
-      trend: "+10%",
+      trend: "+0%",
     },
     {
       label: "Failed",
-      value: "230",
+      value: apiStats.failed.toLocaleString(),
       icon: <XCircle size={20} />,
       color: "text-red-600",
       bg: "bg-red-50",
-      trend: "-2%",
+      trend: "-0%",
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <Loader2 className="animate-spin text-blue-600" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-10">
-      {/* Header */}
       <header className="mb-8 md:mb-10 px-2">
         <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
           Performance Analytics
@@ -56,7 +76,6 @@ const Analytics = () => {
       </header>
 
       {/* Stats Grid */}
-      {/* sm:grid-cols-2 (tablet) and lg:grid-cols-4 (desktop) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
         {stats.map((stat, i) => (
           <div
@@ -101,11 +120,10 @@ const Analytics = () => {
           Transmission Trends
         </h4>
         <p className="text-slate-400 max-w-xs text-sm italic font-medium">
-          Chart visualizations (Recharts/Chart.js) will dynamically render here
-          based on campaign data.
+          {isError ? "Failed to load trend data." : "Live campaign data is being synced for visualizations."}
         </p>
 
-        {/* Placeholder Bars for UI Feel */}
+        {/* Placeholder Bars */}
         <div className="flex items-end gap-2 mt-8 h-20">
           <div className="w-4 bg-blue-100 rounded-t-md h-1/2"></div>
           <div className="w-4 bg-blue-200 rounded-t-md h-3/4"></div>

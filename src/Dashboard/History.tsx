@@ -1,156 +1,3 @@
-// import  { useState } from "react";
-// import {
-//   Search,
-   
-//   Download,
-//   CheckCircle2,
-//   XCircle,
-//   Clock,
-//   ExternalLink,
-// } from "lucide-react";
-
-// const History = () => {
-//   const [searchTerm, setSearchTerm] = useState("");
-
-//   const historyData = Array.from({ length: 15 }, (_, i) => ({
-//     id: `${i + 1}`,
-//     number: `88017000000${i}`,
-//     message:
-//       "Welcome to our premium WhatsApp bulk messaging service! This is a test message.",
-//     date: "Jan 09, 2026 • 10:30 AM",
-//     status: i % 3 === 0 ? "sent" : i % 3 === 1 ? "failed" : "pending",
-//   }));
-
-//   return (
-//     // 'h-screen' use kora hoyeche jate screen-er baire kichu na jay
-//     <div className="flex flex-col h-[calc(100vh-100px)] animate-in fade-in duration-500 overflow-hidden">
-//       {/* Header Section (Fixed Height) */}
-//       <div className="shrink-0 px-2 mb-6">
-//         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-//           <div>
-//             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-//               Campaign History
-//             </h1>
-//             <p className="text-sm text-slate-500">
-//               View and manage your sent transmission logs.
-//             </p>
-//           </div>
-//           <button className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-2xl text-slate-700 font-bold hover:bg-slate-50 transition shadow-sm w-fit">
-//             <Download size={18} />
-//             <span className="text-sm">Export CSV</span>
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* Main Container Card (Inflexible Height) */}
-//       <div className="flex-1 flex flex-col bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-white overflow-hidden min-h-0">
-//         {/* Search Bar (Sticky at top of Card) */}
-//         <div className="p-4 border-b border-slate-50 shrink-0 bg-slate-50/20">
-//           <div className="relative">
-//             <Search
-//               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-//               size={18}
-//             />
-//             <input
-//               type="text"
-//               placeholder="Search history..."
-//               className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//             />
-//           </div>
-//         </div>
-
-//         {/* --- SCROLLABLE TABLE WRAPPER --- */}
-//         {/* 'overflow-auto' eikhanei shob magic korbe */}
-//         <div className="flex-1 overflow-auto custom-scrollbar">
-//           <table className="w-full text-left border-collapse min-w-[800px]">
-//             <thead className="sticky top-0 z-10 bg-white">
-//               <tr className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black border-b border-slate-100">
-//                 <th className="px-8 py-4 bg-white">Recipient</th>
-//                 <th className="px-8 py-4 bg-white">Message Content</th>
-//                 <th className="px-8 py-4 bg-white">Date & Time</th>
-//                 <th className="px-8 py-4 bg-white text-center">Status</th>
-//                 <th className="px-8 py-4 bg-white text-right">Action</th>
-//               </tr>
-//             </thead>
-//             <tbody className="divide-y divide-slate-50">
-//               {historyData.map((log) => (
-//                 <tr
-//                   key={log.id}
-//                   className="group hover:bg-slate-50/50 transition-colors"
-//                 >
-//                   <td className="px-8 py-5 whitespace-nowrap">
-//                     <span className="text-slate-900 font-bold text-sm tracking-tight">
-//                       {log.number}
-//                     </span>
-//                   </td>
-//                   <td className="px-8 py-5">
-//                     <p className="text-slate-500 text-sm min-w-[300px] line-clamp-1">
-//                       {log.message}
-//                     </p>
-//                   </td>
-//                   <td className="px-8 py-5 whitespace-nowrap">
-//                     <span className="text-slate-400 text-[11px] font-bold uppercase tracking-tighter">
-//                       {log.date}
-//                     </span>
-//                   </td>
-//                   <td className="px-8 py-5 text-center">
-//                     <div className="flex justify-center">
-//                       <span
-//                         className={`
-//                         px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1.5 border whitespace-nowrap
-//                         ${
-//                           log.status === "sent"
-//                             ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-//                             : log.status === "failed"
-//                             ? "bg-red-50 text-red-600 border-red-100"
-//                             : "bg-amber-50 text-amber-600 border-amber-100"
-//                         }
-//                       `}
-//                       >
-//                         {log.status === "sent" ? (
-//                           <CheckCircle2 size={12} />
-//                         ) : log.status === "failed" ? (
-//                           <XCircle size={12} />
-//                         ) : (
-//                           <Clock size={12} />
-//                         )}
-//                         {log.status}
-//                       </span>
-//                     </div>
-//                   </td>
-//                   <td className="px-8 py-5 text-right whitespace-nowrap">
-//                     <button className="text-slate-300 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg">
-//                       <ExternalLink size={16} />
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* Footer (Fixed at bottom of Card) */}
-//         <div className="px-8 py-4 border-t border-slate-100 flex items-center justify-between bg-white shrink-0">
-//           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-//             Total: {historyData.length}
-//           </p>
-//           <div className="flex gap-2">
-//             <button className="px-4 py-1.5 border border-slate-100 rounded-lg text-xs font-bold text-slate-400 hover:bg-slate-50 transition">
-//               Prev
-//             </button>
-//             <button className="px-4 py-1.5 bg-blue-600 rounded-lg text-xs font-bold text-white shadow-lg shadow-blue-100">
-//               Next
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default History;
 import { useState } from "react";
 import {
   Search,
@@ -160,175 +7,198 @@ import {
   Clock,
   ExternalLink,
   Loader2,
+  RefreshCcw,
+  Smartphone,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
- // Thik path-ta check koro
-import { format } from "date-fns"; // Optional: date formatting-er jonno (npm install date-fns)
+import { format } from "date-fns";
 import { useGetHistoryQuery } from "../redux/features/history/history";
 
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
-
-  // 1. RTK Query theke dynamic history load kora
   const { data, isLoading, isError, refetch } = useGetHistoryQuery();
 
-  // 2. Data loading state handling
+  // 1. Data Filter and Sorting (Latest First)
+  const filteredHistory = data?.history
+    ? [...data.history]
+        .filter((log: any) =>
+          log.phoneNumber.includes(searchTerm) || 
+          log.messageContent.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+    : [];
+
+  // 2. CSV Export Logic
+  const exportToCSV = () => {
+    if (!filteredHistory || filteredHistory.length === 0) return;
+
+    const headers = ["Phone Number", "Message Content", "Status", "Sent At"];
+    const rows = filteredHistory.map((log: any) => [
+      log.phoneNumber,
+      `"${log.messageContent.replace(/"/g, '""')}"`,
+      log.status,
+      log.sentAt ? format(new Date(log.sentAt), "yyyy-MM-dd HH:mm") : "N/A"
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Campaign_History_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)]">
         <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="mt-4 text-slate-500 font-medium">Fetching transmission logs...</p>
+        <p className="mt-4 text-slate-500 font-medium tracking-tight">Loading campaign history...</p>
       </div>
     );
   }
 
-  // 3. Search Logic: Filter history based on number or message
-  const filteredHistory = data?.history?.filter((log) =>
-    log.phoneNumber.includes(searchTerm) || 
-    log.messageContent.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] animate-in fade-in duration-500 overflow-hidden">
+    <div className="flex flex-col min-h-screen animate-in fade-in duration-500 pb-10">
+      
       {/* Header Section */}
-      <div className="shrink-0 px-2 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="px-2 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
               Campaign History
             </h1>
-            <p className="text-sm text-slate-500">
-              View and manage your sent transmission logs.
+            <p className="text-slate-500 mt-1">
+              Check all your previously sent message logs.
             </p>
           </div>
-          <div className="flex gap-2">
-             <button 
-                onClick={() => refetch()} 
-                className="px-4 py-2 text-xs font-bold bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200"
-             >
-                Refresh
-             </button>
-             <button className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-5 py-2.5 rounded-2xl text-slate-700 font-bold hover:bg-slate-50 transition shadow-sm w-fit">
-               <Download size={18} />
-               <span className="text-sm">Export CSV</span>
-             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Container Card */}
-      <div className="flex-1 flex flex-col bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-white overflow-hidden min-h-0">
-        {/* Search Bar */}
-        <div className="p-4 border-b border-slate-50 shrink-0 bg-slate-50/20">
-          <div className="relative">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search by number or message..."
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* --- SCROLLABLE TABLE WRAPPER --- */}
-        <div className="flex-1 overflow-auto custom-scrollbar">
-          {isError ? (
-            <div className="p-20 text-center text-red-500 font-medium">
-              Failed to load history logs. Please try again.
-            </div>
-          ) : filteredHistory.length === 0 ? (
-            <div className="p-20 text-center text-slate-300 font-medium">
-               No records found.
-            </div>
-          ) : (
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead className="sticky top-0 z-10 bg-white">
-                <tr className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black border-b border-slate-100">
-                  <th className="px-8 py-4 bg-white">Recipient</th>
-                  <th className="px-8 py-4 bg-white">Message Content</th>
-                  <th className="px-8 py-4 bg-white">Date & Time</th>
-                  <th className="px-8 py-4 bg-white text-center">Status</th>
-                  <th className="px-8 py-4 bg-white text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filteredHistory.map((log: any) => (
-                  <tr
-                    key={log._id}
-                    className="group hover:bg-slate-50/50 transition-colors"
-                  >
-                    <td className="px-8 py-5 whitespace-nowrap">
-                      <span className="text-slate-900 font-bold text-sm tracking-tight">
-                        {log.phoneNumber}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5">
-                      <p className="text-slate-500 text-sm min-w-[300px] line-clamp-1">
-                        {log.messageContent}
-                      </p>
-                    </td>
-                    <td className="px-8 py-5 whitespace-nowrap">
-                      <span className="text-slate-400 text-[11px] font-bold uppercase tracking-tighter">
-                        {/* Backend theke asha timestamp format kora */}
-                        {log.createdAt ? format(new Date(log.createdAt), "MMM dd, yyyy • hh:mm a") : "N/A"}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5 text-center">
-                      <div className="flex justify-center">
-                        <span
-                          className={`
-                          px-3 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1.5 border whitespace-nowrap
-                          ${
-                            log.status === "sent"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                              : log.status === "failed"
-                              ? "bg-red-50 text-red-600 border-red-100"
-                              : "bg-amber-50 text-amber-600 border-amber-100"
-                          }
-                        `}
-                        >
-                          {log.status === "sent" ? (
-                            <CheckCircle2 size={12} />
-                          ) : log.status === "failed" ? (
-                            <XCircle size={12} />
-                          ) : (
-                            <Clock size={12} />
-                          )}
-                          {log.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-right whitespace-nowrap">
-                      <button className="text-slate-300 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg">
-                        <ExternalLink size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-8 py-4 border-t border-slate-100 flex items-center justify-between bg-white shrink-0">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Total Records: {filteredHistory.length}
-          </p>
-          <div className="flex gap-2">
-            <button className="px-4 py-1.5 border border-slate-100 rounded-lg text-xs font-bold text-slate-400 hover:bg-slate-50 transition disabled:opacity-50">
-              Prev
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => refetch()} 
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold bg-white border border-slate-200 text-slate-600 rounded-2xl hover:bg-slate-50 transition shadow-sm"
+            >
+              <RefreshCcw size={18} />
+              Refresh
             </button>
-            <button className="px-4 py-1.5 bg-blue-600 rounded-lg text-xs font-bold text-white shadow-lg shadow-blue-100">
-              Next
+            <button 
+              onClick={exportToCSV}
+              disabled={filteredHistory.length === 0}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 px-6 py-3 rounded-2xl text-white font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50"
+            >
+              <Download size={18} />
+              Export CSV
             </button>
           </div>
         </div>
       </div>
+
+      {/* Search Section */}
+      <div className="px-2 mb-6">
+        <div className="relative group">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+          <input
+            type="text"
+            placeholder="Search by number or message..."
+            className="w-full pl-14 pr-6 py-4 bg-white border-2 border-transparent rounded-[2rem] shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none text-base transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Grid Card Layout Area */}
+      {isError ? (
+        <div className="p-10 text-center text-red-500 bg-red-50 rounded-3xl mx-2 border border-red-100 font-medium">
+          Something went wrong while fetching data. Please try again.
+        </div>
+      ) : filteredHistory.length === 0 ? (
+        <div className="p-20 text-center text-slate-400 font-medium">
+           No history found {searchTerm && `for "${searchTerm}"`}.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 px-2">
+          {filteredHistory.map((log: any) => (
+            <div 
+              key={log._id} 
+              className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+            >
+              {/* Status Ribbon */}
+              <div className="absolute top-0 right-0">
+                <div className={`px-4 py-1.5 rounded-bl-2xl text-[10px] font-black uppercase tracking-widest ${
+                  log.status === "sent" ? "bg-emerald-50 text-emerald-600" : 
+                  log.status === "failed" ? "bg-red-50 text-red-600" : 
+                  "bg-amber-50 text-amber-600"
+                }`}>
+                  {log.status}
+                </div>
+              </div>
+
+              {/* Number & Date */}
+              <div className="flex items-start gap-4 mb-5">
+                <div className={`p-3 rounded-2xl ${
+                  log.status === "sent" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                }`}>
+                  <Smartphone size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                    {log.phoneNumber}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold mt-0.5">
+                    <Calendar size={12} />
+                    {log.sentAt ? format(new Date(log.sentAt), "MMM dd, yyyy • hh:mm a") : "Date N/A"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Content */}
+              <div className="bg-slate-50/50 p-4 rounded-2xl mb-5 border border-slate-50">
+                <div className="flex items-center gap-2 text-slate-400 mb-2">
+                  <MessageSquare size={14} />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Message Content</span>
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed line-clamp-3 italic group-hover:line-clamp-none transition-all">
+                  "{log.messageContent}"
+                </p>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                <div className="flex items-center gap-2">
+                  {log.status === "sent" ? (
+                    <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                      <CheckCircle2 size={14} /> Delivered
+                    </div>
+                  ) : log.status === "failed" ? (
+                    <div className="flex items-center gap-1 text-red-500 text-xs font-bold">
+                      <XCircle size={14} /> Failed
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                      <Clock size={14} /> Processing
+                    </div>
+                  )}
+                </div>
+                {/* <button className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-blue-600 transition-colors shadow-sm">
+                  <ExternalLink size={16} />
+                </button> */}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* Total Records Info */}
+      {!isError && filteredHistory.length > 0 && (
+        <div className="mt-12 text-center">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                Total transmissions: {filteredHistory.length}
+            </p>
+        </div>
+      )}
     </div>
   );
 };
