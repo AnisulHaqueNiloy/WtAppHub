@@ -9,7 +9,7 @@ const Setting = () => {
   // RTK Query Mutation Hook
   const [updateToken, { isLoading }] = useTokenUpdateMutation();
 
-  const handleUpdate = async (e) => {
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!waToken) {
@@ -21,8 +21,10 @@ const Setting = () => {
       await updateToken({ waToken }).unwrap();
       toast.success("API Key updated successfully! 🚀");
       setWaToken(""); // Form clear kora
-    } catch (err) {
-      toast.error(err?.data?.message || "Failed to update settings");
+      window.location.href = '/dashboard'; // Page reload kora jate notun settings reflect hoy
+    } catch (err: unknown) {
+      const errorMessage = (err as { data?: { message?: string } })?.data?.message || "Failed to update settings";
+      toast.error(errorMessage);
       console.error("Update Error:", err);
     }
   };

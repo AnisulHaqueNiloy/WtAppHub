@@ -155,7 +155,7 @@ import {
   MessageSquare,
   Menu,
   X,
-  Smartphone,
+  
 } from "lucide-react";
 import { authContext } from "../AuthContext/AuthProvider";
 import { useGetSessionStatusQuery } from "../redux/features/settings/settingApi";

@@ -5,7 +5,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  ExternalLink,
+  
   Loader2,
   RefreshCcw,
   Smartphone,
