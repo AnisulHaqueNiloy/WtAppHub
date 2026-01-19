@@ -12,7 +12,7 @@ import { useSendBulkMutation } from "../redux/features/settings/settingApi";
  
 
 // Socket connection
-const socket = io("http://localhost:5000"); 
+const socket = io("https://wt-app-server.onrender.com"); 
 
 interface Contact {
   number: string;

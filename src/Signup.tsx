@@ -8,7 +8,7 @@ import {
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
-import { useRegisterMutation } from "./redux/features/auth/authAPi";
+import { useRegisterMutation } from "./redux/features/auth/authApi";
 
  // Update path if needed
 
