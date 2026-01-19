@@ -20,7 +20,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const res = await axios.get(
         "https://api.wtapphub.com/api/auth/me",
-        { withCredentials: true }
+        // "http://localhost:5000/api/auth/me",
+        { withCredentials: true },
       );
       setUser(res.data);
     } catch (err) {
@@ -46,7 +47,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           navigate("/login", { replace: true });
         }
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
@@ -58,8 +59,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     await axios.post(
       "https://api.wtapphub.com/api/auth/logout",
+      // "http://localhost:5000/api/auth/logout",
       {},
-      { withCredentials: true }
+      { withCredentials: true },
     );
     setUser(null);
     navigate("/login", { replace: true });
@@ -67,7 +69,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <authContext.Provider value={{ user, loading, logout }}>
-      { children}
+      {children}
     </authContext.Provider>
   );
 };
