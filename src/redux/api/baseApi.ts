@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://wt-app-server.onrender.com/api",
+    baseUrl: "https://api.wtapphub.com/api",
     credentials: "include",
 
     // prepareHeaders: (headers) => {
