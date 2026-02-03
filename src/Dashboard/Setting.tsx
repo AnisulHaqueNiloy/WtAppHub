@@ -24,7 +24,7 @@ import {
   useDeleteSessionMutation,
 } from "../redux/features/settings/settingApi";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://api.wtapphub.com");
 
 const Setting = () => {
   const [waToken, setWaToken] = useState("");
