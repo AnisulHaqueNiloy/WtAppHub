@@ -4,7 +4,8 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://api.wtapphub.com/api",
+    // baseUrl: "https://api.wtapphub.com/api",
+    baseUrl: "http://localhost:5000/api",
 
     credentials: "include",
 
@@ -13,5 +14,5 @@ export const baseApi = createApi({
     // },
   }),
   endpoints: () => ({}),
-  tagTypes: ["User", "Auth", "Message", "Session"],
+  tagTypes: ["User", "Auth", "Message", "Session",'WhatsAppSession'],
 });
