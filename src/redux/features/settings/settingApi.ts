@@ -42,13 +42,35 @@ const settingApi = baseApi.injectEndpoints({
 
     SessionStatus: builder.query({
       query: (sessionId) => `/wa/session/status/${sessionId}`,
-      providesTags: (result, error, sessionId) => [
+      providesTags: ( sessionId) => [
         { type: "WhatsAppSession", id: sessionId },
       ],
     }),
 
+    deleteSession: builder.mutation({
+      query: (sessionId) => ({
+        url: `/wa/session/${sessionId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["WhatsAppSession"],
+    }),
+
+    getsessionlist: builder.query({
+      query: () => ({
+        url: "/wa/whatsapp-sessions",
+        method: "GET",
+      }),
+      providesTags: ["WhatsAppSession"],
+    }),
+
     getSessionStatus: builder.query<
-      { success: boolean; status: string; number: string },
+      {
+        success: boolean;
+        status: string;
+        number: string;
+        api_Key?: string;
+        id: string;
+      },
       void
     >({
       query: () => ({
@@ -77,4 +99,6 @@ export const {
   useCreateSessionMutation,
   useConnectSessionMutation,
   useSessionStatusQuery,
+  useGetsessionlistQuery,
+  useDeleteSessionMutation,
 } = settingApi;

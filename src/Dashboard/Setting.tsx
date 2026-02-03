@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
+import { QRCodeSVG } from "qrcode.react";
+import { io } from "socket.io-client";
 import {
   Key,
   PlusCircle,
@@ -8,18 +10,34 @@ import {
   CheckCircle2,
   ShieldCheck,
   RefreshCw,
+  Loader2,
+  X,
+  Copy,
+  Lock,
 } from "lucide-react";
 import {
   useCreateSessionMutation,
   useConnectSessionMutation,
   useSessionStatusQuery,
   useTokenUpdateMutation,
+  useGetSessionStatusQuery,
+  useDeleteSessionMutation,
 } from "../redux/features/settings/settingApi";
+
+const socket = io("http://localhost:5000");
 
 const Setting = () => {
   const [waToken, setWaToken] = useState("");
   const [updateToken, { isLoading: isTokenSaving }] = useTokenUpdateMutation();
 
+  const { refetch: refetchApiKey } = useGetSessionStatusQuery();
+  const { data: sessionStatus, refetch: refetchSessionStatus } =
+    useGetSessionStatusQuery();
+
+  const [deleteSession, { isLoading: isDeleting }] = useDeleteSessionMutation();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [apiKeyToShow, setApiKeyToShow] = useState("");
   const [step, setStep] = useState(1);
   const [sessionInfo, setSessionInfo] = useState({
     name: "",
@@ -33,56 +51,97 @@ const Setting = () => {
   const [connectSession, { isLoading: isConnecting }] =
     useConnectSessionMutation();
 
-  // --- Polling Logic: Step 3 তে থাকলে ৫ সেকেন্ড পর পর হিট করবে ---
-  const { data: statusData, refetch } = useSessionStatusQuery(
-    sessionInfo.sessionId,
-    {
-      pollingInterval: step === 3 && !isConnected ? 5000 : 0,
-      skip: !sessionInfo.sessionId,
-    },
-  );
+  // Helper to get ID
+  const getSafeId = (data) => data?._id || data?.id || data?.sessionId;
 
   useEffect(() => {
-    if (statusData) {
-      // ব্যাকএন্ড থেকে আসা qrCode স্ট্রিং সেট করা
-      if (statusData.qrCode) {
-        setQrCode(statusData.qrCode);
-      }
-      if (statusData.status === "connected") {
+    if (sessionInfo.sessionId) {
+      const channel = `session_update_${sessionInfo.sessionId}`;
+      socket.on(channel, (data) => {
+        if (data.qrCode) setQrCode(data.qrCode);
+        if (data.status === "connected" || data.status === "ready") {
+          setIsConnected(true);
+          setQrCode("");
+          toast.success("WhatsApp Linked Successfully! 🎉");
+          refetchSessionStatus();
+        }
+      });
+      return () => socket.off(channel);
+    }
+  }, [sessionInfo.sessionId, refetchSessionStatus]);
+
+  const {
+    data: statusData,
+    refetch,
+    isFetching,
+  } = useSessionStatusQuery(sessionInfo.sessionId, {
+    pollingInterval: step === 3 && !isConnected ? 5000 : 0,
+    skip: !sessionInfo.sessionId,
+  });
+
+  useEffect(() => {
+    if (statusData && !isConnected) {
+      if (statusData.qrCode) setQrCode(statusData.qrCode);
+      if (statusData.status === "connected" || statusData.status === "ready") {
         setIsConnected(true);
         setQrCode("");
-        toast.success("WhatsApp Connected! 🎉");
+        toast.success("Connected! 🎉");
+        refetchSessionStatus();
       }
     }
-  }, [statusData]);
+  }, [statusData, isConnected, refetchSessionStatus]);
 
-  const handleTokenUpdate = async (e: React.FormEvent) => {
+  const handleShowApiKey = async () => {
+    try {
+      const result = await refetchApiKey();
+      const responseData = result?.data;
+      if (
+        responseData?.status === "connected" ||
+        responseData?.status === "ready"
+      ) {
+        const fetchedKey = responseData?.api_key;
+        if (fetchedKey) {
+          setApiKeyToShow(fetchedKey);
+          setIsModalOpen(true);
+        } else {
+          toast.error("API key property mismatch! ❌");
+        }
+      } else {
+        toast.error("Connect your number with QR first! ⚠️");
+      }
+    } catch (err) {
+      toast.error("Failed to fetch status!");
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!apiKeyToShow) return toast.error("Key not found! ❌");
+    navigator.clipboard.writeText(apiKeyToShow);
+    toast.success("API Key copied! 📋");
+  };
+
+  const handleTokenUpdate = async (e) => {
     e.preventDefault();
     if (!waToken) return toast.error("Please enter a token!");
     try {
       await updateToken({ waToken }).unwrap();
       toast.success("API Key updated! 🚀");
-      setWaToken("");
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to update token");
+      setTimeout(() => (window.location.href = "/dashboard"), 1500);
+    } catch (err) {
+      toast.error("Failed to update token");
     }
   };
 
-  const handleCreateSession = async (e: React.FormEvent) => {
+  const handleCreateSession = async (e) => {
     e.preventDefault();
     try {
-      const res = await createSession({
-        name: sessionInfo.name,
-        phoneNumber: sessionInfo.phoneNumber,
-      }).unwrap();
-
-      // ব্যাকএন্ড যদি res.data.sessionId পাঠায়
-      const sid = res.data?.sessionId || res.sessionId;
+      const res = await createSession(sessionInfo).unwrap();
+      const sid = res.data?.sessionId || res.sessionId || res.data?.id;
       setSessionInfo((prev) => ({ ...prev, sessionId: sid }));
       setStep(2);
-      toast.success("Session created! Please connect.");
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to create session");
+      toast.success("Session Created!");
+    } catch (err) {
+      toast.error("Failed to create session");
     }
   };
 
@@ -90,59 +149,125 @@ const Setting = () => {
     try {
       await connectSession({ sessionId: sessionInfo.sessionId }).unwrap();
       setStep(3);
-      toast.success("Initializing server instance...");
-    } catch (err: any) {
-      toast.error("Failed to connect instance.");
+      toast.success("Fetching QR Code...");
+    } catch (err) {
+      toast.error("Connection failed.");
     }
   };
 
-  // QR রেন্ডারিং লজিক (Base64 প্রিফিক্স চেক)
+  // --- Hot Toast Replace Browser Alert ---
+  const handleDeleteSession = (id) => {
+    if (!id || id === "undefined") return toast.error("Invalid Session ID!");
+
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <span className="font-semibold text-slate-800">
+            Are you sure you want to delete?
+          </span>
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 text-xs bg-slate-200 text-slate-700 rounded-lg font-bold"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await deleteSession(id).unwrap();
+                  toast.success("Deleted successfully! 🗑️");
+                  refetchSessionStatus();
+                  setIsConnected(false);
+                  setQrCode("");
+                  setStep(1);
+                } catch (err) {
+                  toast.error("Delete failed");
+                }
+              }}
+              className="px-3 py-1 text-xs bg-red-600 text-white rounded-lg font-bold shadow-lg"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: 6000,
+        position: "top-center",
+      },
+    );
+  };
+
   const renderQRCode = () => {
-    // কনসোলে চেক করুন স্ট্রিংটি কেমন আসছে
-    console.log("Current QR String:", qrCode);
-
-    if (!qrCode) return <div className="animate-spin ..."></div>;
-
-    // অনেক সময় ব্যাকএন্ড সরাসরি QR কোড না পাঠিয়ে একটি URL পাঠায়
-    // যদি সেটি http দিয়ে শুরু হয় তবে সরাসরি বসান
-    if (qrCode.startsWith("http")) {
-      return <img src={qrCode} alt="WhatsApp QR" className="w-40 h-40" />;
-    }
-
-    // Base64 চেক: যদি অলরেডি prefix থাকে তবে সেটা ব্যবহার করবে, না থাকলে যোগ করবে
-    const qrSrc = qrCode.includes("base64,")
-      ? qrCode
-      : `data:image/png;base64,${qrCode}`;
-
+    if (!qrCode)
+      return <Loader2 className="animate-spin text-indigo-500" size={32} />;
     return (
-      <img
-        src={qrSrc}
-        alt="WhatsApp QR"
-        key={qrCode} // key যোগ করলে প্রতিবার নতুন কিউআর আসলে ইমেজ রিফ্রেশ হবে
-        className="w-40 h-40 object-contain shadow-inner"
-        onError={(e) => console.error("Image Load Error:", e)}
-      />
+      <QRCodeSVG value={qrCode} size={180} level="H" includeMargin={true} />
     );
   };
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 p-4 space-y-10 mb-20">
-      {/* SECTION 1: MASTER TOKEN */}
-      <section className="bg-white p-6 md:p-8 rounded-[2rem] shadow-xl border border-gray-100 transition-all hover:shadow-2xl">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600">
-            <Key size={24} />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-slate-800 tracking-tight">
-              Wasender Configuration
-            </h2>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-              Master Access Token
-            </p>
+    <div className="max-w-5xl mx-auto mt-10 p-4 space-y-10 mb-20 relative font-sans">
+      <Toaster position="top-center" reverseOrder={false} />
+
+      {/* API KEY MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4">
+          <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-md relative animate-in zoom-in duration-300">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-900"
+            >
+              <X size={24} />
+            </button>
+            <div className="text-center space-y-4">
+              <div className="bg-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-white shadow-xl">
+                <Lock size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800">
+                API Access Key
+              </h3>
+              <div className="flex items-center gap-2 bg-slate-50 p-5 rounded-[1.5rem] border-2 border-slate-100 mt-6">
+                <code className="flex-1 text-sm font-mono text-indigo-600 truncate font-bold">
+                  {apiKeyToShow}
+                </code>
+                <button
+                  onClick={copyToClipboard}
+                  className="text-slate-400 hover:text-indigo-600 transition-all active:scale-90"
+                >
+                  <Copy size={20} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
+      {/* Header Section */}
+      <section className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-600 p-3 rounded-2xl text-white shadow-lg">
+              <Key size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                Wasender Config
+              </h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                General Settings
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleShowApiKey}
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-all"
+          >
+            <ShieldCheck size={18} /> Get API Key
+          </button>
+        </div>
         <form
           onSubmit={handleTokenUpdate}
           className="flex flex-col md:flex-row gap-4"
@@ -151,146 +276,158 @@ const Setting = () => {
             type="password"
             value={waToken}
             onChange={(e) => setWaToken(e.target.value)}
-            className="flex-1 px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-200 focus:bg-white rounded-2xl outline-none transition-all"
-            placeholder="Paste your Wasender Master API Key here..."
+            className="flex-1 px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-indigo-100 rounded-2xl outline-none"
+            placeholder="Paste Master API Key..."
           />
           <button
             type="submit"
             disabled={isTokenSaving}
-            className="px-10 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 active:scale-95 transition-all"
+            className="px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 shadow-lg"
           >
             {isTokenSaving ? "Saving..." : "Update Key"}
           </button>
         </form>
       </section>
 
-      <hr className="border-slate-100" />
-
-      {/* SECTION 2: CONNECTION WIZARD */}
-      <section className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-black text-slate-900">Link Device</h2>
-          <p className="text-slate-500 text-sm max-w-md mx-auto">
-            Follow these three simple steps to connect your WhatsApp number with
-            our system.
-          </p>
+      {/* Step Wizard Section */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div
+          className={`p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${step === 1 ? "bg-white border-blue-500 shadow-xl" : "bg-slate-50 opacity-50 grayscale pointer-events-none"}`}
+        >
+          <h3 className="font-black flex items-center gap-2 mb-6 text-slate-800">
+            <PlusCircle size={20} /> 1. Initialize
+          </h3>
+          <form onSubmit={handleCreateSession} className="space-y-4">
+            <input
+              required
+              className="w-full p-4 bg-white border border-slate-200 rounded-2xl outline-none"
+              placeholder="Session Name"
+              onChange={(e) =>
+                setSessionInfo({ ...sessionInfo, name: e.target.value })
+              }
+            />
+            <input
+              required
+              className="w-full p-4 bg-white border border-slate-200 rounded-2xl outline-none"
+              placeholder="Phone (880...)"
+              onChange={(e) =>
+                setSessionInfo({ ...sessionInfo, phoneNumber: e.target.value })
+              }
+            />
+            <button
+              disabled={isCreating}
+              className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl"
+            >
+              Next Step
+            </button>
+          </form>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* STEP 1: CREATE */}
-          <div
-            className={`relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${step === 1 ? "bg-white border-blue-500 shadow-2xl scale-105 z-10" : "bg-gray-50 border-transparent opacity-40 grayscale"}`}
+        <div
+          className={`p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${step === 2 ? "bg-white border-indigo-500 shadow-xl" : "bg-slate-50 opacity-50 grayscale pointer-events-none"}`}
+        >
+          <h3 className="font-black flex items-center gap-2 mb-6 text-slate-800">
+            <Link2 size={20} /> 2. Connect
+          </h3>
+          <p className="text-xs text-slate-500 mb-10 leading-relaxed font-medium">
+            Activate server instance for QR code.
+          </p>
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting}
+            className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg"
           >
-            <div className="absolute -top-4 -right-4 bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black shadow-lg">
-              1
-            </div>
-            <h3 className="font-bold flex items-center gap-2 mb-6 text-slate-800">
-              <PlusCircle size={20} /> Create Session
-            </h3>
-            <form onSubmit={handleCreateSession} className="space-y-4">
-              <input
-                required
-                disabled={step !== 1}
-                className="w-full p-4 bg-slate-100 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Session Name"
-                onChange={(e) =>
-                  setSessionInfo({ ...sessionInfo, name: e.target.value })
-                }
-              />
-              <input
-                required
-                disabled={step !== 1}
-                className="w-full p-4 bg-slate-100 border-none rounded-2xl outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Phone (880...)"
-                onChange={(e) =>
-                  setSessionInfo({
-                    ...sessionInfo,
-                    phoneNumber: e.target.value,
-                  })
-                }
-              />
-              {step === 1 && (
-                <button
-                  disabled={isCreating}
-                  className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all"
-                >
-                  {isCreating ? "Initializing..." : "Get Started"}
-                </button>
-              )}
-            </form>
-          </div>
+            {isConnecting ? (
+              <Loader2 className="animate-spin mx-auto" />
+            ) : (
+              "Start Instance"
+            )}
+          </button>
+        </div>
 
-          {/* STEP 2: CONNECT */}
-          <div
-            className={`relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${step === 2 ? "bg-white border-indigo-500 shadow-2xl scale-105 z-10" : "bg-gray-50 border-transparent opacity-40 grayscale"}`}
-          >
-            <div className="absolute -top-4 -right-4 bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black shadow-lg">
-              2
-            </div>
-            <h3 className="font-bold flex items-center gap-2 mb-6 text-slate-800">
-              <Link2 size={20} /> Connect
-            </h3>
-            <p className="text-xs text-slate-500 mb-8 leading-relaxed">
-              Starting the WhatsApp engine on the server. This may take up to 30
-              seconds.
-            </p>
-            <button
-              disabled={step !== 2 || isConnecting}
-              onClick={handleConnect}
-              className={`w-full py-4 rounded-2xl font-black transition-all ${step === 2 ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg" : "bg-slate-200 text-slate-400"}`}
-            >
-              {isConnecting ? "Connecting..." : "Connect Now"}
-            </button>
-          </div>
-
-          {/* STEP 3: SCAN QR */}
-          <div
-            className={`relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${step === 3 ? "bg-white border-emerald-500 shadow-2xl scale-105 z-10" : "bg-gray-50 border-transparent opacity-40 grayscale"}`}
-          >
-            <div className="absolute -top-4 -right-4 bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black shadow-lg">
-              3
-            </div>
-            <h3 className="font-bold flex items-center gap-2 mb-6 text-slate-800">
-              <QrCode size={20} /> Scan QR
-            </h3>
-            <div className="aspect-square bg-slate-50 rounded-[2rem] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 overflow-hidden relative group">
-              {isConnected ? (
-                <div className="flex flex-col items-center animate-in zoom-in duration-500">
-                  <CheckCircle2 size={60} className="text-emerald-500 mb-2" />
-                  <span className="text-xs font-black text-emerald-600 uppercase tracking-widest">
-                    Linked
-                  </span>
-                </div>
-              ) : (
-                renderQRCode()
-              )}
-            </div>
-            {step === 3 && !isConnected && (
-              <button
-                onClick={() => refetch()}
-                className="w-full mt-4 flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 hover:text-emerald-600 transition-colors uppercase"
-              >
-                <RefreshCw size={12} /> Force Refresh QR
-              </button>
+        <div
+          className={`p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${step === 3 ? "bg-white border-emerald-500 shadow-xl" : "bg-slate-50 opacity-50 grayscale pointer-events-none"}`}
+        >
+          <h3 className="font-black flex items-center gap-2 mb-6 text-slate-800">
+            <QrCode size={20} /> 3. Scan QR
+          </h3>
+          <div className="aspect-square bg-slate-50 rounded-[2rem] flex items-center justify-center border-2 border-dashed border-slate-200 relative">
+            {isConnected ? (
+              <div className="flex flex-col items-center animate-in zoom-in duration-500">
+                <CheckCircle2 size={60} className="text-emerald-500 mb-2" />
+                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                  Successfully Linked
+                </span>
+              </div>
+            ) : (
+              renderQRCode()
             )}
           </div>
+          {step === 3 && !isConnected && (
+            <button
+              onClick={() => refetch()}
+              className="w-full mt-4 flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest"
+            >
+              <RefreshCw
+                size={12}
+                className={isFetching ? "animate-spin" : ""}
+              />{" "}
+              {isFetching ? "Syncing..." : "Manual Refresh"}
+            </button>
+          )}
         </div>
       </section>
 
-      {/* Security Policy */}
-      <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col md:flex-row items-center gap-6 shadow-2xl">
+      {/* Active Session Status Card */}
+      {sessionStatus && sessionStatus.status === "connected" && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-4">
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${sessionStatus.status === "connected" ? "bg-emerald-100" : "bg-yellow-100"}`}
+            >
+              {sessionStatus.status === "connected" ? (
+                <CheckCircle2 className="text-emerald-600" size={28} />
+              ) : (
+                <RefreshCw className="text-yellow-600 animate-spin" size={28} />
+              )}
+            </div>
+            <div>
+              <h4 className="text-base font-black text-slate-800">
+                {sessionStatus.name || "Active Session"}
+              </h4>
+              <p className="text-sm text-slate-500 font-medium">
+                {sessionStatus.phone_number}
+              </p>
+              <span
+                className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter ${sessionStatus.status === "connected" ? "bg-emerald-500 text-white" : "bg-yellow-500 text-white"}`}
+              >
+                {sessionStatus.status}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => handleDeleteSession(getSafeId(sessionStatus))}
+            disabled={isDeleting}
+            className="p-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+          >
+            {isDeleting ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <X size={20} />
+            )}
+          </button>
+        </div>
+      )}
+
+      <footer className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex items-center gap-6 shadow-2xl">
         <div className="bg-emerald-500/20 p-4 rounded-2xl text-emerald-400">
           <ShieldCheck size={32} />
         </div>
-        <div>
-          <h4 className="font-bold text-lg mb-1">Encrypted Connection</h4>
-          <p className="text-slate-400 text-sm leading-relaxed text-balance">
-            Your WhatsApp session is stored securely. We do not store your
-            private messages. Keep your device connected to the internet to
-            avoid disconnection.
-          </p>
-        </div>
-      </div>
+        <p className="text-slate-400 text-xs leading-relaxed max-w-xl">
+          Everything is secure. Once linked, the session is stored encrypted on
+          the server.
+        </p>
+      </footer>
     </div>
   );
 };
