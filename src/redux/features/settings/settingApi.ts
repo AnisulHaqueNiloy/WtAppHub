@@ -67,8 +67,9 @@ const settingApi = baseApi.injectEndpoints({
       {
         success: boolean;
         status: string;
-        number: string;
-        api_Key?: string;
+        phone_number: string;
+        name: string;
+        api_key?: string;
         id: string;
       },
       void

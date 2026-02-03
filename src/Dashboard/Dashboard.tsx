@@ -16,8 +16,8 @@ import { authContext } from "../AuthContext/AuthProvider";
 import { useSendBulkMutation } from "../redux/features/settings/settingApi";
 
 // Socket connection
-// const socket = io("https://api.wtapphub.com");
-const socket = io("http://localhost:5000");
+const socket = io("https://api.wtapphub.com");
+// const socket = io("http://localhost:5000");
 
 interface Contact {
   number: string;

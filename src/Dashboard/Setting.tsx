@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { QRCodeSVG } from "qrcode.react";
 import { io } from "socket.io-client";
@@ -52,23 +52,29 @@ const Setting = () => {
     useConnectSessionMutation();
 
   // Helper to get ID
-  const getSafeId = (data) => data?._id || data?.id || data?.sessionId;
+  const getSafeId = (data:any) => data?._id || data?.id || data?.sessionId;
 
+ 
   useEffect(() => {
-    if (sessionInfo.sessionId) {
-      const channel = `session_update_${sessionInfo.sessionId}`;
-      socket.on(channel, (data) => {
-        if (data.qrCode) setQrCode(data.qrCode);
-        if (data.status === "connected" || data.status === "ready") {
-          setIsConnected(true);
-          setQrCode("");
-          toast.success("WhatsApp Linked Successfully! 🎉");
-          refetchSessionStatus();
-        }
-      });
-      return () => socket.off(channel);
-    }
-  }, [sessionInfo.sessionId, refetchSessionStatus]);
+  if (sessionInfo.sessionId) {
+    const channel = `session_update_${sessionInfo.sessionId}`;
+    
+    socket.on(channel, (data) => {
+      if (data.qrCode) setQrCode(data.qrCode);
+      if (data.status === "connected" || data.status === "ready") {
+        setIsConnected(true);
+        setQrCode("");
+        toast.success("WhatsApp Linked Successfully! 🎉");
+        refetchSessionStatus();
+      }
+    });
+
+    // সঠিক Cleanup Function
+    return () => {
+      socket.off(channel);
+    };
+  }
+}, [sessionInfo.sessionId, refetchSessionStatus]);
 
   const {
     data: statusData,
@@ -120,7 +126,7 @@ const Setting = () => {
     toast.success("API Key copied! 📋");
   };
 
-  const handleTokenUpdate = async (e) => {
+  const handleTokenUpdate = async (e:any) => {
     e.preventDefault();
     if (!waToken) return toast.error("Please enter a token!");
     try {
@@ -132,7 +138,7 @@ const Setting = () => {
     }
   };
 
-  const handleCreateSession = async (e) => {
+  const handleCreateSession = async (e:any) => {
     e.preventDefault();
     try {
       const res = await createSession(sessionInfo).unwrap();
@@ -156,7 +162,7 @@ const Setting = () => {
   };
 
   // --- Hot Toast Replace Browser Alert ---
-  const handleDeleteSession = (id) => {
+  const handleDeleteSession = (id:any) => {
     if (!id || id === "undefined") return toast.error("Invalid Session ID!");
 
     toast(

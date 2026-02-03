@@ -95,7 +95,7 @@ const DashboardLayout = () => {
             </div>
             
             <p className={`text-sm font-bold ${session?.status === 'connected' ? 'text-blue-400' : 'text-slate-500'}`}>
-              {session?.number || "Disconnected"}
+              {session?.phone_number || "Disconnected"}
             </p>
           </div>
 
