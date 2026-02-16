@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { QRCodeSVG } from "qrcode.react";
 import { io } from "socket.io-client";
@@ -25,6 +25,7 @@ import {
 } from "../redux/features/settings/settingApi";
 
 const socket = io("https://api.wtapphub.com");
+// const socket = io("http://localhost:5000");
 
 const Setting = () => {
   const [waToken, setWaToken] = useState("");
@@ -52,29 +53,28 @@ const Setting = () => {
     useConnectSessionMutation();
 
   // Helper to get ID
-  const getSafeId = (data:any) => data?._id || data?.id || data?.sessionId;
+  const getSafeId = (data: any) => data?._id || data?.id || data?.sessionId;
 
- 
   useEffect(() => {
-  if (sessionInfo.sessionId) {
-    const channel = `session_update_${sessionInfo.sessionId}`;
-    
-    socket.on(channel, (data) => {
-      if (data.qrCode) setQrCode(data.qrCode);
-      if (data.status === "connected" || data.status === "ready") {
-        setIsConnected(true);
-        setQrCode("");
-        toast.success("WhatsApp Linked Successfully! 🎉");
-        refetchSessionStatus();
-      }
-    });
+    if (sessionInfo.sessionId) {
+      const channel = `session_update_${sessionInfo.sessionId}`;
 
-    // সঠিক Cleanup Function
-    return () => {
-      socket.off(channel);
-    };
-  }
-}, [sessionInfo.sessionId, refetchSessionStatus]);
+      socket.on(channel, (data) => {
+        if (data.qrCode) setQrCode(data.qrCode);
+        if (data.status === "connected" || data.status === "ready") {
+          setIsConnected(true);
+          setQrCode("");
+          toast.success("WhatsApp Linked Successfully! 🎉");
+          refetchSessionStatus();
+        }
+      });
+
+      // সঠিক Cleanup Function
+      return () => {
+        socket.off(channel);
+      };
+    }
+  }, [sessionInfo.sessionId, refetchSessionStatus]);
 
   const {
     data: statusData,
@@ -126,7 +126,7 @@ const Setting = () => {
     toast.success("API Key copied! 📋");
   };
 
-  const handleTokenUpdate = async (e:any) => {
+  const handleTokenUpdate = async (e: any) => {
     e.preventDefault();
     if (!waToken) return toast.error("Please enter a token!");
     try {
@@ -138,7 +138,7 @@ const Setting = () => {
     }
   };
 
-  const handleCreateSession = async (e:any) => {
+  const handleCreateSession = async (e: any) => {
     e.preventDefault();
     try {
       const res = await createSession(sessionInfo).unwrap();
@@ -146,8 +146,8 @@ const Setting = () => {
       setSessionInfo((prev) => ({ ...prev, sessionId: sid }));
       setStep(2);
       toast.success("Session Created!");
-    } catch (err) {
-      toast.error("Failed to create session");
+    } catch (err: any) {
+      toast.error(err.data?.message);
     }
   };
 
@@ -162,7 +162,7 @@ const Setting = () => {
   };
 
   // --- Hot Toast Replace Browser Alert ---
-  const handleDeleteSession = (id:any) => {
+  const handleDeleteSession = (id: any) => {
     if (!id || id === "undefined") return toast.error("Invalid Session ID!");
 
     toast(
@@ -385,45 +385,50 @@ const Setting = () => {
       </section>
 
       {/* Active Session Status Card */}
-      {sessionStatus && sessionStatus.status === "connected" && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center gap-4">
-            <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${sessionStatus.status === "connected" ? "bg-emerald-100" : "bg-yellow-100"}`}
-            >
-              {sessionStatus.status === "connected" ? (
-                <CheckCircle2 className="text-emerald-600" size={28} />
-              ) : (
-                <RefreshCw className="text-yellow-600 animate-spin" size={28} />
-              )}
-            </div>
-            <div>
-              <h4 className="text-base font-black text-slate-800">
-                {sessionStatus.name || "Active Session"}
-              </h4>
-              <p className="text-sm text-slate-500 font-medium">
-                {sessionStatus.phone_number}
-              </p>
-              <span
-                className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter ${sessionStatus.status === "connected" ? "bg-emerald-500 text-white" : "bg-yellow-500 text-white"}`}
+      {sessionStatus &&
+        (sessionStatus.status === "connected" ||
+          sessionStatus?.status === "logged_out") && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-4">
+              <div
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center ${sessionStatus.status === "connected" ? "bg-emerald-100" : "bg-yellow-100"}`}
               >
-                {sessionStatus.status}
-              </span>
+                {sessionStatus.status === "connected" ? (
+                  <CheckCircle2 className="text-emerald-600" size={28} />
+                ) : (
+                  <RefreshCw
+                    className="text-yellow-600 animate-spin"
+                    size={28}
+                  />
+                )}
+              </div>
+              <div>
+                <h4 className="text-base font-black text-slate-800">
+                  {sessionStatus.name || "Active Session"}
+                </h4>
+                <p className="text-sm text-slate-500 font-medium">
+                  {sessionStatus.phone_number}
+                </p>
+                <span
+                  className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter ${sessionStatus.status === "connected" ? "bg-emerald-500 text-white" : "bg-yellow-500 text-white"}`}
+                >
+                  {sessionStatus.status}
+                </span>
+              </div>
             </div>
+            <button
+              onClick={() => handleDeleteSession(getSafeId(sessionStatus))}
+              disabled={isDeleting}
+              className="p-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+            >
+              {isDeleting ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <X size={20} />
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => handleDeleteSession(getSafeId(sessionStatus))}
-            disabled={isDeleting}
-            className="p-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95 disabled:opacity-50 shadow-sm"
-          >
-            {isDeleting ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <X size={20} />
-            )}
-          </button>
-        </div>
-      )}
+        )}
 
       <footer className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex items-center gap-6 shadow-2xl">
         <div className="bg-emerald-500/20 p-4 rounded-2xl text-emerald-400">
