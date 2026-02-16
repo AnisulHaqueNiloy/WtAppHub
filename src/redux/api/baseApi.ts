@@ -14,5 +14,5 @@ export const baseApi = createApi({
     // },
   }),
   endpoints: () => ({}),
-  tagTypes: ["User", "Auth", "Message", "Session",'WhatsAppSession'],
+  tagTypes: ["User", "Auth", "Message", "Session", "WhatsAppSession"],
 });
